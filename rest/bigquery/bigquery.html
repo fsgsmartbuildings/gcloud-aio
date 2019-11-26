@@ -113,6 +113,7 @@ class Table(object):
             &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
         }
 
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
     def insert(
             self, rows                      , skip_invalid       = False,
             ignore_unknown       = True, session                    = None,
@@ -224,6 +225,7 @@ class Table(object):
             &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
         }
 
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
     def insert(
             self, rows                      , skip_invalid       = False,
             ignore_unknown       = True, session                    = None,

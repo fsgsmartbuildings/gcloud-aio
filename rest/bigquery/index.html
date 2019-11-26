@@ -117,6 +117,7 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;Table&#39;]</code></pre
             &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
         }
 
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
     def insert(
             self, rows                      , skip_invalid       = False,
             ignore_unknown       = True, session                    = None,

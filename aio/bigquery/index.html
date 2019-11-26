@@ -110,6 +110,7 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;Table&#39;]</code></pre
             &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
         }
 
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
     async def insert(
             self, rows: List[Dict[str, Any]], skip_invalid: bool = False,
             ignore_unknown: bool = True, session: Optional[Session] = None,
