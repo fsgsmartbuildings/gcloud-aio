@@ -647,7 +647,7 @@ def from_repr(cls, data                )                     :
 
     @classmethod
     def from_repr(cls, data                )                        :
-        return cls(data[&#39;name&#39;], data[&#39;done&#39;], data.get(&#39;metadata&#39;),
+        return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
                    data.get(&#39;error&#39;), data.get(&#39;response&#39;))
 
     def to_repr(self)                  :
@@ -1386,7 +1386,7 @@ def make_mutation(cls, operation           , key     ,
 
     @classmethod
     def from_repr(cls, data                )                        :
-        return cls(data[&#39;name&#39;], data[&#39;done&#39;], data.get(&#39;metadata&#39;),
+        return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
                    data.get(&#39;error&#39;), data.get(&#39;response&#39;))
 
     def to_repr(self)                  :
@@ -1411,7 +1411,7 @@ def make_mutation(cls, operation           , key     ,
 </summary>
 <pre><code class="python">@classmethod
 def from_repr(cls, data                )                        :
-    return cls(data[&#39;name&#39;], data[&#39;done&#39;], data.get(&#39;metadata&#39;),
+    return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
                data.get(&#39;error&#39;), data.get(&#39;response&#39;))</code></pre>
 </details>
 </dd>

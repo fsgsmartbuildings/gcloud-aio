@@ -641,7 +641,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;CompositeFilter&#39;:
 
     @classmethod
     def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
-        return cls(data[&#39;name&#39;], data[&#39;done&#39;], data.get(&#39;metadata&#39;),
+        return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
                    data.get(&#39;error&#39;), data.get(&#39;response&#39;))
 
     def to_repr(self) -&gt; Dict[str, Any]:
@@ -1380,7 +1380,7 @@ def make_mutation(cls, operation: Operation, key: Key,
 
     @classmethod
     def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
-        return cls(data[&#39;name&#39;], data[&#39;done&#39;], data.get(&#39;metadata&#39;),
+        return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
                    data.get(&#39;error&#39;), data.get(&#39;response&#39;))
 
     def to_repr(self) -&gt; Dict[str, Any]:
@@ -1405,7 +1405,7 @@ def make_mutation(cls, operation: Operation, key: Key,
 </summary>
 <pre><code class="python">@classmethod
 def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
-    return cls(data[&#39;name&#39;], data[&#39;done&#39;], data.get(&#39;metadata&#39;),
+    return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
                data.get(&#39;error&#39;), data.get(&#39;response&#39;))</code></pre>
 </details>
 </dd>
