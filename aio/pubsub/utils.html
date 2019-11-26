@@ -49,9 +49,10 @@ def convert_google_future_to_concurrent_future(
 
     Here are the gotchas is uses to do so:
     - sets `future.__class__` so the `isinstance` check works
-    - sets `future._condition`, `future._state`, and `future._done_callbacks`
-      to their equivalent expected values (these are the attributes which
-      Google decided to avoid mirroring from `concurrent.futures`)
+    - sets `future._condition`, `future._state`, `future._done_callbacks` and
+      `future._waiters` to their equivalent expected values (these are the
+      attributes which Google decided to avoid mirroring from
+      `concurrent.futures`)
     - spawns an infinite task which `await`s every second, which prevents the
       Google future from occasionally getting stuck
     &#34;&#34;&#34;
@@ -68,6 +69,7 @@ def convert_google_future_to_concurrent_future(
     setattr(future, &#39;_state&#39;, property(_state))
     setattr(future, &#39;_done_callbacks&#39;,
             future._callbacks)  # pylint: disable=protected-access
+    setattr(future, &#39;_waiters&#39;, [])
 
     loop.create_task(await_on_interval(1))</code></pre>
 </details>
@@ -95,9 +97,10 @@ with <code>asyncio.wrap_future</code>, but that method explicitly calls
 a google <code>Future</code> is valid.</p>
 <p>Here are the gotchas is uses to do so:
 - sets <code>future.__class__</code> so the <code>isinstance</code> check works
-- sets <code>future._condition</code>, <code>future._state</code>, and <code>future._done_callbacks</code>
-to their equivalent expected values (these are the attributes which
-Google decided to avoid mirroring from <code>concurrent.futures</code>)
+- sets <code>future._condition</code>, <code>future._state</code>, <code>future._done_callbacks</code> and
+<code>future._waiters</code> to their equivalent expected values (these are the
+attributes which Google decided to avoid mirroring from
+<code>concurrent.futures</code>)
 - spawns an infinite task which <code>await</code>s every second, which prevents the
 Google future from occasionally getting stuck</p></section>
 <details class="source">
@@ -123,9 +126,10 @@ Google future from occasionally getting stuck</p></section>
 
     Here are the gotchas is uses to do so:
     - sets `future.__class__` so the `isinstance` check works
-    - sets `future._condition`, `future._state`, and `future._done_callbacks`
-      to their equivalent expected values (these are the attributes which
-      Google decided to avoid mirroring from `concurrent.futures`)
+    - sets `future._condition`, `future._state`, `future._done_callbacks` and
+      `future._waiters` to their equivalent expected values (these are the
+      attributes which Google decided to avoid mirroring from
+      `concurrent.futures`)
     - spawns an infinite task which `await`s every second, which prevents the
       Google future from occasionally getting stuck
     &#34;&#34;&#34;
@@ -142,6 +146,7 @@ Google future from occasionally getting stuck</p></section>
     setattr(future, &#39;_state&#39;, property(_state))
     setattr(future, &#39;_done_callbacks&#39;,
             future._callbacks)  # pylint: disable=protected-access
+    setattr(future, &#39;_waiters&#39;, [])
 
     loop.create_task(await_on_interval(1))</code></pre>
 </details>
