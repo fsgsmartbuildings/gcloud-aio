@@ -83,6 +83,65 @@ class Storage:
     def get_bucket(self, bucket_name: str) -&gt; Bucket:
         return Bucket(self, bucket_name)
 
+    async def copy(self, bucket: str, object_name: str,
+                   destination_bucket: str, *, new_name: str = None,
+                   headers: dict = None, params: dict = None,
+                   timeout: int = 10,
+                   session: Optional[Session] = None) -&gt; bytes:
+
+        &#34;&#34;&#34;
+        When files are too large, multiple calls to `rewriteTo` are made. We
+        refer to the same copy job by using the `rewriteToken` from the
+        previous return payload in subsequent `rewriteTo` calls.
+
+        Using the `rewriteTo` GCS API is preferred in part because it is able
+        to make multiple calls to fully copy an object whereas the `copyTo` GCS
+        API only calls `rewriteTo` once under the hood, and thus may fail if
+        files are large.
+
+        In the rare case you need to resume a copy operation, include the
+        `rewriteToken` in the `params` dictionary. Once you begin a multi-part
+        copy operation, you then have 1 week to complete the copy job.
+
+        https://cloud.google.com/storage/docs/json_api/v1/objects/rewrite
+        &#34;&#34;&#34;
+        token = await self.token.get()
+
+        if not new_name:
+            new_name = object_name
+
+        url = (f&#34;{API_ROOT}/{bucket}/o/{quote(object_name, safe=&#39;&#39;)}/rewriteTo&#34;
+               f&#34;/b/{destination_bucket}/o/{quote(new_name, safe=&#39;&#39;)}&#34;)
+
+        # We may optionally supply metadata* to apply to the rewritten
+        # object, which explains why `rewriteTo` is a POST endpoint; however,
+        # we don&#39;t expose that here so we have to send an empty body. Therefore
+        # the `Content-Length` and `Content-Type` indicate an empty body.
+        #
+        # * https://cloud.google.com/storage/docs/json_api/v1/objects#resource
+        headers = headers or {}
+        headers.update({
+            &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
+            &#39;Content-Length&#39;: &#39;0&#39;,
+            &#39;Content-Type&#39;: &#39;&#39;,
+        })
+
+        params = params or {}
+
+        s = AioSession(session) if session else self.session
+        resp = await s.post(url, headers=headers, params=params,
+                            timeout=timeout)
+
+        data: dict = await resp.json()
+
+        while not data.get(&#39;done&#39;) and data.get(&#39;rewriteToken&#39;):
+            params[&#39;rewriteToken&#39;] = data[&#39;rewriteToken&#39;]
+            resp = await s.post(url, headers=headers, params=params,
+                                timeout=timeout)
+            data = await resp.json()
+
+        return data
+
     async def delete(self, bucket: str, object_name: str, *,
                      params: dict = None, timeout: int = 10,
                      session: Optional[Session] = None) -&gt; str:
@@ -366,6 +425,65 @@ class Storage:
     def get_bucket(self, bucket_name: str) -&gt; Bucket:
         return Bucket(self, bucket_name)
 
+    async def copy(self, bucket: str, object_name: str,
+                   destination_bucket: str, *, new_name: str = None,
+                   headers: dict = None, params: dict = None,
+                   timeout: int = 10,
+                   session: Optional[Session] = None) -&gt; bytes:
+
+        &#34;&#34;&#34;
+        When files are too large, multiple calls to `rewriteTo` are made. We
+        refer to the same copy job by using the `rewriteToken` from the
+        previous return payload in subsequent `rewriteTo` calls.
+
+        Using the `rewriteTo` GCS API is preferred in part because it is able
+        to make multiple calls to fully copy an object whereas the `copyTo` GCS
+        API only calls `rewriteTo` once under the hood, and thus may fail if
+        files are large.
+
+        In the rare case you need to resume a copy operation, include the
+        `rewriteToken` in the `params` dictionary. Once you begin a multi-part
+        copy operation, you then have 1 week to complete the copy job.
+
+        https://cloud.google.com/storage/docs/json_api/v1/objects/rewrite
+        &#34;&#34;&#34;
+        token = await self.token.get()
+
+        if not new_name:
+            new_name = object_name
+
+        url = (f&#34;{API_ROOT}/{bucket}/o/{quote(object_name, safe=&#39;&#39;)}/rewriteTo&#34;
+               f&#34;/b/{destination_bucket}/o/{quote(new_name, safe=&#39;&#39;)}&#34;)
+
+        # We may optionally supply metadata* to apply to the rewritten
+        # object, which explains why `rewriteTo` is a POST endpoint; however,
+        # we don&#39;t expose that here so we have to send an empty body. Therefore
+        # the `Content-Length` and `Content-Type` indicate an empty body.
+        #
+        # * https://cloud.google.com/storage/docs/json_api/v1/objects#resource
+        headers = headers or {}
+        headers.update({
+            &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
+            &#39;Content-Length&#39;: &#39;0&#39;,
+            &#39;Content-Type&#39;: &#39;&#39;,
+        })
+
+        params = params or {}
+
+        s = AioSession(session) if session else self.session
+        resp = await s.post(url, headers=headers, params=params,
+                            timeout=timeout)
+
+        data: dict = await resp.json()
+
+        while not data.get(&#39;done&#39;) and data.get(&#39;rewriteToken&#39;):
+            params[&#39;rewriteToken&#39;] = data[&#39;rewriteToken&#39;]
+            resp = await s.post(url, headers=headers, params=params,
+                                timeout=timeout)
+            data = await resp.json()
+
+        return data
+
     async def delete(self, bucket: str, object_name: str, *,
                      params: dict = None, timeout: int = 10,
                      session: Optional[Session] = None) -&gt; str:
@@ -620,6 +738,85 @@ class Storage:
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.aio.storage.storage.Storage.copy"><code class="name flex">
+<span>async def <span class="ident">copy</span></span>(<span>self, bucket, object_name, destination_bucket, *, new_name=None, headers=None, params=None, timeout=10, session=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>When files are too large, multiple calls to <code>rewriteTo</code> are made. We
+refer to the same copy job by using the <code>rewriteToken</code> from the
+previous return payload in subsequent <code>rewriteTo</code> calls.</p>
+<p>Using the <code>rewriteTo</code> GCS API is preferred in part because it is able
+to make multiple calls to fully copy an object whereas the <code>copyTo</code> GCS
+API only calls <code>rewriteTo</code> once under the hood, and thus may fail if
+files are large.</p>
+<p>In the rare case you need to resume a copy operation, include the
+<code>rewriteToken</code> in the <code>params</code> dictionary. Once you begin a multi-part
+copy operation, you then have 1 week to complete the copy job.</p>
+<p><a href="https://cloud.google.com/storage/docs/json_api/v1/objects/rewrite">https://cloud.google.com/storage/docs/json_api/v1/objects/rewrite</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def copy(self, bucket: str, object_name: str,
+               destination_bucket: str, *, new_name: str = None,
+               headers: dict = None, params: dict = None,
+               timeout: int = 10,
+               session: Optional[Session] = None) -&gt; bytes:
+
+    &#34;&#34;&#34;
+    When files are too large, multiple calls to `rewriteTo` are made. We
+    refer to the same copy job by using the `rewriteToken` from the
+    previous return payload in subsequent `rewriteTo` calls.
+
+    Using the `rewriteTo` GCS API is preferred in part because it is able
+    to make multiple calls to fully copy an object whereas the `copyTo` GCS
+    API only calls `rewriteTo` once under the hood, and thus may fail if
+    files are large.
+
+    In the rare case you need to resume a copy operation, include the
+    `rewriteToken` in the `params` dictionary. Once you begin a multi-part
+    copy operation, you then have 1 week to complete the copy job.
+
+    https://cloud.google.com/storage/docs/json_api/v1/objects/rewrite
+    &#34;&#34;&#34;
+    token = await self.token.get()
+
+    if not new_name:
+        new_name = object_name
+
+    url = (f&#34;{API_ROOT}/{bucket}/o/{quote(object_name, safe=&#39;&#39;)}/rewriteTo&#34;
+           f&#34;/b/{destination_bucket}/o/{quote(new_name, safe=&#39;&#39;)}&#34;)
+
+    # We may optionally supply metadata* to apply to the rewritten
+    # object, which explains why `rewriteTo` is a POST endpoint; however,
+    # we don&#39;t expose that here so we have to send an empty body. Therefore
+    # the `Content-Length` and `Content-Type` indicate an empty body.
+    #
+    # * https://cloud.google.com/storage/docs/json_api/v1/objects#resource
+    headers = headers or {}
+    headers.update({
+        &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
+        &#39;Content-Length&#39;: &#39;0&#39;,
+        &#39;Content-Type&#39;: &#39;&#39;,
+    })
+
+    params = params or {}
+
+    s = AioSession(session) if session else self.session
+    resp = await s.post(url, headers=headers, params=params,
+                        timeout=timeout)
+
+    data: dict = await resp.json()
+
+    while not data.get(&#39;done&#39;) and data.get(&#39;rewriteToken&#39;):
+        params[&#39;rewriteToken&#39;] = data[&#39;rewriteToken&#39;]
+        resp = await s.post(url, headers=headers, params=params,
+                            timeout=timeout)
+        data = await resp.json()
+
+    return data</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.storage.storage.Storage.delete"><code class="name flex">
 <span>async def <span class="ident">delete</span></span>(<span>self, bucket, object_name, *, params=None, timeout=10, session=None)</span>
 </code></dt>
@@ -832,6 +1029,7 @@ class Storage:
 <li>
 <h4><code><a title="gcloud.aio.storage.storage.Storage" href="#gcloud.aio.storage.storage.Storage">Storage</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.aio.storage.storage.Storage.copy" href="#gcloud.aio.storage.storage.Storage.copy">copy</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.delete" href="#gcloud.aio.storage.storage.Storage.delete">delete</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.download" href="#gcloud.aio.storage.storage.Storage.download">download</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.download_metadata" href="#gcloud.aio.storage.storage.Storage.download_metadata">download_metadata</a></code></li>
